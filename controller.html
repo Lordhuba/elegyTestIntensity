@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<!-- saved from url=(0059)http://v4-alpha.getbootstrap.com/examples/starter-template/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<head>
+	<script type="text/javascript" src="https://www.airconsole.com/api/airconsole-1.5.0.js"></script>
+	<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.1.1.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script type="text/javascript">
+	    var air_console = new AirConsole();
+	    var isPlayerTurn = false;
+	    var playerReady = false;
+	    var playerNumber;
+	    var playerHealth = 3;
+	    var playerDiamonds = 0;
+	    var players;
+	    var cooldown = 0;
+	    function init() {
+      		airconsole = new AirConsole({"orientation": "landscape"});
+      	}
+	    function sendMessage (string, value) {
+	    	console.log("SendMessage called.");
+	    	if (isPlayerTurn) {
+				air_console.message(AirConsole.SCREEN, {string: value});
+			}
+		}
+        function sendDirection (value) {
+        	console.log("SendDirection called.");
+        	if (isPlayerTurn) {
+            	air_console.message(AirConsole.SCREEN, {direction: value});
+            }
+        }
+        function sendAction () {
+        	console.log("SendAction called.");
+        	if (isPlayerTurn) {
+            	air_console.message(AirConsole.SCREEN, {action: true});
+            }
+        }
+        function sendTrade (playerNumber) {
+        	console.log("SendTrade called.");
+        	if (isPlayerTurn) {
+                playerDiamonds = 0;
+                $('.diamond').text(playerDiamonds);
+            	air_console.message(AirConsole.SCREEN, {trade: playerNumber});
+            }
+        }
+        function sendReady (ready) {
+        	console.log("SendReady called.");
+        	if (isPlayerTurn) {
+        		if (playerReady == ready) {
+        			console.log("Sending ready: false to player.");
+        			air_console.message(AirConsole.SCREEN, {ready: false});
+        			playerReady = false;
+        		}
+        		else if (playerReady != ready) {
+        			console.log("Sending ready: true to player.");
+        			air_console.message(AirConsole.SCREEN, {ready: true});
+        			playerReady = true;
+        		}
+
+            }
+        }
+
+        function sendStart () {
+        	console.log("SendStart called.");
+            air_console.message(AirConsole.SCREEN, {start: true});
+        }
+
+		air_console.onReady = function() {
+			//air_console.message(AirConsole.SCREEN, {message: "Hello can you hear me?"});
+		}
+		air_console.onMessage = function(device_id, data) {
+		    /*console.log(data.playerTurn);
+		    console.log(data.start);
+		    console.log(data.playerHealth);
+		    console.log(data.playerNumber);
+		    console.log(data.playerDiamonds);
+		    console.log(data.playerClass);
+		    console.log(data.players);*/
+		    if (data.playerDiamonds != null) {
+		        console.log("Player has diamonds: " + data.playerDiamonds);
+		        playerDiamonds = data.playerDiamonds;
+                $('.diamonds').text(playerDiamonds);
+            }
+		    if (data.playerNumber != null) {
+		        playerNumber = data.playerNumber;
+		    }
+		    if (data.playerHealth != null) {
+		        console.log(data.playerHealth);
+		        playerHealth = data.playerHealth;
+                $('.health').text(playerHealth);
+		        console.log("Player " + playerNumber + " was damaged and is now at " + playerHealth + " health");
+		    }
+		    if (!data.start) {
+		        $(".start").addClass("hide");
+		        $(".info").addClass("reveal");
+		        $(".buttons").addClass("reveal");
+		    }
+		    if (data.playerClass != "") {
+		        $(".class").text(data.playerClass);
+		        $(".class").removeClass("hide");
+		    }
+		    if (data.players != null) {
+		        players = data.players;
+		        $(".player1").text(data.players.player1);
+		        $(".player2").text(data.players.player2);
+		        $(".player3").text(data.players.player3);
+		        $(".player4").text(data.players.player4);
+		    }
+			if (data.playerTurn) {
+				isPlayerTurn = true;
+				$(".active").removeClass("active");
+				console.log(playerReady);
+			}
+			else {
+			    $(".button").addClass("disabled");
+			    playerReady = false;
+			    isPlayerTurn = false;
+			    console.log(playerReady);
+			}
+			
+			if (data != undefined && data.hasOwnProperty("actionCooldown") && data.actionCooldown != undefined) {
+			    console.log(data.actionCooldown);
+			    cooldown = data.actionCooldown;
+			    if (data.actionCooldown == 0) 
+			        $('.action').removeClass('disable');
+                else
+			        $('.action').addClass('disable');
+
+			}
+			if (data.death) {
+			    $('.container-fluid').addClass('dead');
+			}
+		}
+    </script>
+
+    <style type="text/css">
+        body {
+            background:#222;
+        }
+        .container-fluid {
+            padding: 30px;
+            display: table;
+            position: absolute;
+            height: 100%;
+            width: 100%;
+        }
+        .center-vertical {
+            display: table-cell;
+            vertical-align: middle;
+        }
+        .button.disabled {
+            /*background: #75706B;*/
+        }
+
+        .start.hide {
+            display: none;
+        }
+        .buttons {
+            opacity: 0;
+            height: 0;
+            -webkit-transition: all 2s;
+            transition: all 2s;
+        }
+        .buttons.reveal {
+            opacity: 1;
+            height: auto;
+        }
+        .button a {
+            height: auto;
+            width: 100%;
+            border-radius: 165px;
+            background: #333;
+            color: #adee00;
+            box-shadow: 0px 0px 10px #adee00;
+            display: inline-block;
+            position: relative;
+            text-align: center;
+            color: #adee00;
+            /* line-height: 122px; */
+            padding: 35px 15px;
+            text-transform: uppercase;
+            font-family: sans-serif;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 30px;
+            min-height: 122px;
+            font-size: 20px;
+            -webkit-transition: all .5s;
+            transition: all .5s;
+        }
+        .button a:hover {
+            text-decoration: none;
+        }
+        .button a.active {
+            color:#333;
+            background: #adee00;
+            box-shadow: 0px 0px 2px #adee00;
+            padding-top: 29px;
+        }
+        .button a.active em {
+            font-style: normal;
+            font-size: 16px;
+        }
+        .moveOverlay, .tradeOverlay {
+            opacity:0;
+            height: 100%;
+            background:rgba(20,20,20,0.9);
+            position: absolute;
+            width:100%;
+            z-index: 99;
+            display: block;
+            -webkit-transition: all .35s;
+            transition: all .35s;
+            pointer-events: none;
+        }       
+        .moveOverlay.reveal, .tradeOverlay.reveal {
+            opacity: 1;
+            height: 100%;
+            display: table;
+            pointer-events: auto;
+        }
+        .moveOverlay a, .tradeOverlay a {
+            display: inline-block;
+            position: relative;
+            width: 90%;
+            opacity: 0;
+            font-size: 20px;
+            color: #adee00;
+            padding: 30px 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            background: #333;
+            border-radius: 10px;
+            margin: 10px;
+            pointer-events: none;
+            -webkit-transition: all .35s;
+            transition: all .35s;
+        }
+        .moveOverlay.reveal a, .tradeOverlay.reveal a {
+            pointer-events: auto;
+            opacity: 1;
+        }
+
+        .moveOverlay a:hover, .tradeOverlay a:hover {
+            text-decoration: none;
+        }
+        .info {
+            height: 0;
+            opacity: 0;
+            color: #adee00;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            font-size: 30px;
+            margin-top:30px;
+            -webkit-transition: all 6s;
+            transition: all 6s;
+        }
+        .info.reveal {
+            height: 100%;
+            opacity: 1;
+        }
+        .info em {
+            font-style: normal;
+        }
+        h1.hide {
+            height: 0;
+            opacity: 0;
+            -webkit-transition: all 6s;
+            transition: all 6s;
+        }
+        h1 {
+            font-size: 30px;
+            color: #adee00;
+            height: auto;
+            opacity: 1;
+            text-transform: uppercase;
+            -webkit-transition: all 6s;
+            transition: all 6s;
+            margin-top: 0;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+        .dead a, a.disable {
+            opacity: 0.25 !important;
+            pointer-events: none !important;
+            cursor: default !important;
+        }
+    </style>
+</head>
+<body onload="init()">
+    <div class="moveOverlay text-center">
+        <div class="center-vertical">
+            <div class="row">
+                <div class="col-xs-6 col-xs-offset-3">
+                    <a ontouchstart='sendDirection("North")' onmousedown='sendDirection("North")'>North</a>
+                </div>            
+            </div>
+            <div class="row">
+                <div class="col-xs-4">
+                    <a ontouchstart='sendDirection("West")' onmousedown='sendDirection("West")'>West</a>
+                </div>
+                <div class="col-xs-4">
+                    <a ontouchstart='sendDirection("Wait")' onmousedown='sendDirection("Wait")'>Wait</a>
+                </div>
+                <div class="col-xs-4">
+                    <a ontouchstart='sendDirection("East")' onmousedown='sendDirection("East")'>East</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-xs-offset-3">
+                    <a ontouchstart='sendDirection("South")' onmousedown='sendDirection("South")'>South</a>
+                </div>            
+            </div>
+        </div>
+    </div>
+    <div class="tradeOverlay text-center">
+        <div class="center-vertical">
+            <div class="row">
+                <div class="col-xs-6">
+                    <a class="player1" ontouchstart='sendTrade(0)' onmousedown='sendTrade(0)'>1</a>
+                </div>
+                <div class="col-xs-6">
+                    <a class="player2" ontouchstart='sendTrade(1)' onmousedown='sendTrade(1)'>2</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6">
+                    <a class="player3" ontouchstart='sendTrade(2)' onmousedown='sendTrade(2)'>3</a>
+                </div>
+                <div class="col-xs-6">
+                    <a class="player4" ontouchstart='sendTrade(3)' onmousedown='sendTrade(3)'>4</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="center-vertical">
+            <div class="row">
+                <h1 class="text-center hide class">Class</h1>
+            </div>
+            <div class="row buttons">
+                <div class="col-xs-4">
+                    <div class="button">
+                        <a class="move">Move</a>
+                    </div>
+                </div>
+                <div class="col-xs-4">
+                    <div class="button" ontouchstart="sendMessage()" onmousedown="sendAction()">
+                        <a class="action">Action</a>
+                    </div>
+                </div>
+                <div class="col-xs-3 hide">
+                    <div class="button"">
+                        <a class="trade">Trade</a>
+                    </div>
+                </div>
+                <div class="col-xs-4">
+                    <div class="button" ontouchstart="" onmousedown="sendReady(true)">
+                        <a class="ready">Ready</a>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 start">
+                    <div class="button" ontouchstart="" onmousedown="sendStart()">
+                        <a>start</a>
+                    </div> 
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 info">
+                    <div class="col-xs-6">
+                        <p>Health: <em class="health">3</em></p>
+                    </div>
+                    <div class="col-xs-6">
+                        <p>Diamonds: <em class="diamonds">0</em></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $('.move').click(function() {
+            $('.moveOverlay').addClass('reveal');
+            $('.move').removeClass('active');
+            $(this).text("Move");
+        });
+        $('.moveOverlay a').click(function () {
+            var choice = $(this).text();
+            $('.moveOverlay').removeClass('reveal');
+            $('.move').addClass('active');
+            $('.move').append('<br/><em>' + choice + '</em>');
+            
+            $('.move').text()
+        });
+        $('.trade').click(function () {
+            $('.tradeOverlay').addClass('reveal');
+        });
+        $('.tradeOverlay a').click(function () {
+            $('.tradeOverlay').removeClass('reveal');
+        });
+        $('.action').click(function () {
+            $('.action').addClass('active');
+        });
+        $('.ready').click(function () {
+            $('.ready').toggleClass('active');
+        });
+    </script>
+    
+</body>
+</html>
